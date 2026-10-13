@@ -1,0 +1,36 @@
+name: Publish website
+
+# The website lives in the docs/ folder of rdm-dl/rdm; this repo only publishes it
+# at https://rdm-dl.github.io. Runs on demand, every few hours, and on any push here.
+on:
+  workflow_dispatch:
+  push:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: rdm-dl/rdm
+          sparse-checkout: docs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4
